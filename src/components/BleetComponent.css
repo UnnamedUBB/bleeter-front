@@ -1,0 +1,21 @@
+.bleet-card {
+    width: 100%; /* Możesz dostosować szerokość w zależności od potrzeb */
+    padding: 10px;
+    box-sizing: border-box; /* Upewnia się, że padding jest wliczony w szerokość */
+    border: 1px solid #ddd; /* Opcjonalnie, dodaje obramowanie dla lepszego wyglądu */
+    overflow: hidden; /* Ukrywa nadmiarowy content, jeśli jest za duży */
+  }
+  
+  .bleet-content {
+    word-wrap: break-word; /* Zapewnia, że słowa będą przenoszone do następnej linijki, gdy są zbyt długie */
+    white-space: pre-wrap; /* Zachowuje białe znaki i łamanie linii, przy przenoszeniu tekstu */
+  }
+  
+  .bleet-info {
+    margin-top: 10px; /* Dodaje odstęp między zawartością a informacjami */
+  }
+  
+  .bleet-date, .bleet-author {
+    margin: 0; /* Usuwa domyślne marginesy */
+  }
+  

@@ -1,67 +1,112 @@
-import React, { useState } from "react";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar.tsx";
+import {useState, useEffect} from 'react';
+import axios from 'axios';
+import BleetComponent from './BleetComponent';
 
-function ProfileInfo() {
-  const [description, setDescription] = useState("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedDescription, setEditedDescription] = useState(description);
+interface Author {
+  id: string;
+  userName: string;
+}
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-    setEditedDescription(description);
+interface Bleet {
+  id: string;
+  content: string;
+  dateCreatedUtc: string;
+  author: Author;
+  comments?: number | null;
+  likes?: number | null;
+  createdBy?: string | null;
+  dataDeletedUtc?: string | null;
+  dateModifiedUtc?: string | null;
+  deletedBy?: string | null;
+  modifiedBy?: string | null;
+}
+
+function BleetList() {
+  const [bleets, setBleets] = useState<Bleet[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchBleets = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const response = await axios.get('http://localhost:5402/Bleet/user?PageSize=10&Page=1', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log('API Response:', response.data);
+
+        if (response.status === 200) {
+          const bleetsArray = response.data.data.bleets || response.data.data;
+          if (Array.isArray(bleetsArray)) {
+            setBleets(bleetsArray);
+            console.log('Bleets state set to:', bleetsArray);
+          } else {
+            setError('Unexpected response format');
+          }
+        } else {
+          setError('Zaloguj się aby widzieć Bleety');
+        }
+      } catch (error: any) {
+        console.error('Failed to fetch bleets:', error);
+        setError('Zaloguj się aby widzieć Bleety');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBleets();
+  }, []);
+
+  const handleDeleteBleet = async (bleetId: string) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      await axios.delete(`http://localhost:5402/bleet?BleetId=${bleetId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      // Update bleets state after deletion
+      setBleets(prevBleets => prevBleets.filter(bleet => bleet.id !== bleetId));
+    } catch (error) {
+      setError('Failed to delete bleet: ' + error);
+      console.error('Failed to delete bleet:', error);
+    }
   };
 
-  const handleSaveClick = () => {
-    setDescription(editedDescription);
-    setIsEditing(false);
-  };
-
-  const handleCancelClick = () => {
-    setIsEditing(false);
-  };
+  if (loading) {
+    return <p>Ładowanie...</p>;
+  }
 
   return (
-    <>
-      <div className="relative w-full">
-        <img className="h-64 w-full object-cover rounded-t-lg" src="bgimg.jpg" alt="Background" />
-        <div className="absolute top-32 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <Avatar className="shadow-lg border-4 m-2 border-white rounded-full">
-            <AvatarImage src="https://github.com/shadcn.png" className="rounded-full" />
-            <AvatarFallback className="rounded-full">CN</AvatarFallback>
-          </Avatar>
-          <button>Prześlij zdjęcie</button>
-        </div>
-      </div>
+    <div className="content-center">
+      <h1 className="text-5xl mt-5">Lista Bleetów</h1>
 
-      <div className="text-center mt-20">
-        <p className="font-bold text-3xl">Jacek Jaworek</p>
-      </div>
+      {error && <p className="text-red-500 mt-4">{error}</p>}
 
-      <div className="mt-5 px-10">
-        {isEditing ? (
-          <>
-            <p className="font-semibold text-xl">O mnie:</p>
-            <textarea
-              className="mt-3 text-justify text-gray-200 bg-slate-800 leading-relaxed w-1/2"
-              value={editedDescription}
-              onChange={(e) => setEditedDescription(e.target.value)}
-            />
-            <div className="mt-3">
-              <button className="btn bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl w-20 h-10 mr-2" onClick={handleSaveClick}>Zapisz</button>
-              <button className="btn bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl w-20 h-10" onClick={handleCancelClick}>Anuluj</button>
+      {bleets.length > 0 ? (
+        <div className="mt-5 space-y-6">
+          {bleets.map((bleet) => (
+            <div key={bleet.id} className="bg-gray p-4 rounded-lg shadow-md">
+              <BleetComponent bleet={bleet}/>
+              <button
+                onClick={() => handleDeleteBleet(bleet.id)}
+                className="mt-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md"
+              >
+                Delete Bleet
+              </button>
             </div>
-          </>
-        ) : (
-          <>
-            <p className="font-semibold text-xl">O mnie:</p>
-            <p className="mt-3 text-justify text-gray-200 leading-relaxed">{description}</p>
-            <button className="btn bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl w-20 h-10" onClick={handleEditClick}>Edytuj</button>
-          
-          </>
-        )}
-      </div>
-    </>
+          ))}
+        </div>
+      ) : (
+        <p>Brak Bleetów do wyświetlenia</p>
+      )}
+
+    </div>
   );
 }
 
-export default ProfileInfo;
+export default BleetList;

@@ -74,3 +74,36 @@
       @apply bg-background text-foreground;
     }
   }
+  /* Assuming global CSS file or CSS module */
+.bleet-card {
+  background-color: rgb(46, 119, 46);
+  padding: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 16px;
+}
+
+.bleet-content {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.bleet-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #920505;
+}
+
+.bleet-info p {
+  margin: 0;
+}
+
+.bleet-date {
+  flex: 1;
+}
+
+.bleet-author {
+  margin-left: 16px;
+}
